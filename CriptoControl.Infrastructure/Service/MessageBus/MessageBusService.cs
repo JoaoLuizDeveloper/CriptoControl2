@@ -6,24 +6,23 @@ namespace CriptoControl.Infrastructure.Service.MessageBus
     public class MessageBusService : IMessageBusService
     {
         private readonly ConnectionFactory _factory;
-        //private readonly IConfiguration _configuration;
         public MessageBusService()
         {
             _factory = new ConnectionFactory
             {
                 HostName = "localhost",
-                //Local não precisa configurar o password mas caso precise publicar sera necessario com o IConfiguration
-                //Password
+                // If publishing externally, you may need to set credentials "password" via IConfiguration
             };
         }
 
+        // the method to publish messages to a specified queue
         public void Publish(string queue, byte[] message)
         {
             using(var connection = _factory.CreateConnection())
             {
                 using (var channel = connection.CreateModel())
                 {
-                    //Garantir a criação da fila
+                    // Declare the queue to ensure it exists (no durability, not exclusive, won't auto-delete)
                     channel.QueueDeclare(
                         queue: queue,
                         durable: false,
@@ -31,7 +30,7 @@ namespace CriptoControl.Infrastructure.Service.MessageBus
                         autoDelete: false,
                         arguments: null);
 
-                    //Publicar a mensagem
+                    //Publish the message to the specified queue
                     channel.BasicPublish(
                         exchange: "",
                         routingKey: queue,
